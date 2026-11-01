@@ -10,6 +10,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import androidx.navigation.toRoute
 import edu.moravian.csci215.misophoniaapp.screens.*
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesConnection
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesConnectionScreen
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesNearby
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesNearbyScreen
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesSettingsScreen
 import edu.moravian.csci215.misophoniaapp.screens.login.*
 import edu.moravian.csci215.misophoniaapp.screens.registration.*
 import edu.moravian.csci215.misophoniaapp.server_data.*
@@ -84,7 +89,7 @@ fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
                     }
                     sendWithoutRequest { request ->
                         //todo: confirm with server-side which endpoints do not require a provided bearer token
-                        val endpointsToSkip = listOf("/login", "/health", "/refresh")
+                        val endpointsToSkip = listOf("/login", "/health", "/refresh", "/user")
                         // Do NOT send the header if targeting the auth/refresh endpoint
                         //!request.url.toString().contains("/login")
                         !endpointsToSkip.any { request.url.toString().contains(it) }
@@ -341,6 +346,15 @@ fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
                 }
                 composable<WifiNetworks> {
                     WifiNetworksScreen()
+                }
+                composable<HeadphonesConnection> {
+                    HeadphonesConnectionScreen()
+                }
+                composable<HeadphonesNearby> {
+                    HeadphonesNearbyScreen()
+                }
+                composable<HeadphonesSettings> {
+                    HeadphonesSettingsScreen()
                 }
             }
         }

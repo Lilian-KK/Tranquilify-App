@@ -130,11 +130,14 @@ fun VerifyPhoneNumberScreen(
                 onClick = {
                     coroutineScope.launch {
                         try {
+                            println("trying to send code")
+                            println(code)
                             createAccount(code)
                             toHub()
-                        } catch (exception: BadRequestException) {
+                            println("code sent")
+                        } catch (exception: BadRequestException) { //400
                             showSnackbar(exception.message ?: "Bad Request Exception")
-                        } catch (exception: ConflictException) {
+                        } catch (exception: ConflictException) { //409
                             showSnackbar(exception.message ?: "Conflict Exception")
                         }
                     }

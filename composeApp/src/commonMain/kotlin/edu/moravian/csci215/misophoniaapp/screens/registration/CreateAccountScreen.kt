@@ -130,7 +130,17 @@ fun CreateAccountScreen(
                 onClick = {
                     coroutineScope.launch {
                         try {
+                            //block off this section
+                            //val regexPhoneNumber = Regex("^\+[1-9]\d{1,14}$")
+                            //val phoneNumberIsValid = regexPhoneNumber.matches(phoneNumber)
                             sendCode(phoneNumber.formatPhone())
+//                            if (password.length < 8) {
+//                                showSnackbar("Password should be at least 8 characters.")
+//                            } else if (username.length < 3 || username.length > 32) {
+//                                showSnackbar("Username should be between 3 and 32 characters.")
+//                            } else if (phoneNumberIsValid) {
+//                                showSnackbar("PhoneNumber")
+//                            }
                             toVerifyPhoneNumber(phoneNumber.formatPhone(), username, password)
                         } catch (exception: BadRequestException) {
                             showSnackbar(exception.message ?: "Bad Request Exception")

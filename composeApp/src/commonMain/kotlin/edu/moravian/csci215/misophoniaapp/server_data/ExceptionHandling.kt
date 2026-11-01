@@ -45,6 +45,7 @@ suspend fun responseValidator(exception: Throwable, request: HttpRequest) {
     val message = try { response.body<ErrorResponse>().message }
     catch (ex: JsonConvertException) { response.bodyAsText() }
     catch (ex: NoTransformationFoundException) { response.bodyAsText() }
+    println("message: " + message)
     when (response.status) {
         HttpStatusCode.BadRequest -> throw BadRequestException(message, response)
         HttpStatusCode.Unauthorized -> throw UnauthorizedException(message, response)

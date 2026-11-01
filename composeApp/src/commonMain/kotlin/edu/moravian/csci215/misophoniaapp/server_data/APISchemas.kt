@@ -21,7 +21,6 @@ data class LoginCredentials (
 @Serializable
 data class UserResponse(
     val username: String,
-    //todo make sure this is the right data type?
     val created_at: LocalDateTime
 )
 

@@ -43,9 +43,9 @@ fun SetupScreen(
     onCreateAccount: () -> Unit,
 ) {
 //    // add check that ble permissions have been granted
-//    LaunchedEffect(Unit) {
-//        scanKable()
-//    }
+    LaunchedEffect(Unit) {
+        scanKable()
+    }
 
     Column(
         modifier =
@@ -90,36 +90,36 @@ fun SetupScreen(
 //// nimBLE
 //// let them connect to one, once they connect to it display information (characteristics?) about it
 //// also put this in a separate bluetooth/wifi folder
-//suspend fun scanKable() {
-//    println("proof that testingkable is running")
-//    val advertisement =
-//        Scanner {
-//            filters {
-//                match {
-//                    println("before services created")
-//                    services = listOf(Bluetooth.BaseUuid + 0x180F) // battery service
-//                    println("these are the services" + services)
-//                }
-//                match {
-//                    Filter.Name.Exact("nimBLE")
-//                }
-//            }
-//            logging {
-//                engine = SystemLogEngine
-//                level = Logging.Level.Warnings
-//                format = Logging.Format.Multiline
-//            }
-//        }.advertisements.first()
-////    val advertisement = Scanner().advertisements.first()
-//    // note for future nora: it pauses here
-//    println("the advertisement is: " + advertisement)
-//
-//    println("before peripheral created")
-//    val peripheral = Peripheral(advertisement) { }
-//    peripheral.connect()
-//    println("peripheral connected")
-//
-//    println("before batterydata connected")
-//    val batteryData = peripheral.read(characteristicOf("0x180F", "0x2A19")) // the battery level characteristic
-//    println("Hey this is the battery data allegedly:" + batteryData)
-//}
+suspend fun scanKable() {
+    println("proof that testingkable is running")
+    val advertisement =
+        Scanner {
+            filters {
+                match {
+                    println("before services created")
+                    services = listOf(Bluetooth.BaseUuid + 0x180F) // battery service
+                    println("these are the services" + services)
+                }
+                match {
+                    Filter.Name.Exact("nimBLE")
+                }
+            }
+            logging {
+                engine = SystemLogEngine
+                level = Logging.Level.Warnings
+                format = Logging.Format.Multiline
+            }
+        }.advertisements.first()
+//    val advertisement = Scanner().advertisements.first()
+    // note for future nora: it pauses here
+    println("the advertisement is: " + advertisement)
+
+    println("before peripheral created")
+    val peripheral = Peripheral(advertisement) { }
+    peripheral.connect()
+    println("peripheral connected")
+
+    println("before batterydata connected")
+    val batteryData = peripheral.read(characteristicOf("0x180F", "0x2A19")) // the battery level characteristic
+    println("Hey this is the battery data allegedly:" + batteryData)
+}
