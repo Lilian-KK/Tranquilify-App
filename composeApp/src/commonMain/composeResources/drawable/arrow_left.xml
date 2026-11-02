@@ -1,0 +1,13 @@
+<!-- Figma "Arrow left" icon (Tranquilify file, Icon Button), converted 1:1 from SVG -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <path
+        android:pathData="M15.8333 10H4.16667M10 4.16667L4.16667 10L10 15.8333"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeColor="#F5F5F5" />
+</vector>

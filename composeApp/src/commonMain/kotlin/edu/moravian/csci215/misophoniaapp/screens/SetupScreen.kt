@@ -6,29 +6,34 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.juul.kable.Bluetooth
 import com.juul.kable.Filter
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
+import com.juul.kable.UnmetRequirementException
 import com.juul.kable.characteristicOf
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.SystemLogEngine
 import edu.moravian.csci215.misophoniaapp.AppColors
 import edu.moravian.csci215.misophoniaapp.PrimaryButton
 import edu.moravian.csci215.misophoniaapp.ScreenTitle
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import misophoniaapp.composeapp.generated.resources.Res
 import misophoniaapp.composeapp.generated.resources.create_account
-import misophoniaapp.composeapp.generated.resources.login
+import misophoniaapp.composeapp.generated.resources.log_in_button
 import misophoniaapp.composeapp.generated.resources.logo
 import misophoniaapp.composeapp.generated.resources.welcome_message
 import org.jetbrains.compose.resources.painterResource
@@ -44,7 +49,18 @@ fun SetupScreen(
 ) {
 //    // add check that ble permissions have been granted
     LaunchedEffect(Unit) {
-        scanKable()
+        // Scanning fails when Bluetooth is off or permissions were denied;
+        // that must not crash the welcome screen.
+        try {
+            scanKable()
+        } catch (exception: UnmetRequirementException) {
+            println("Bluetooth scan skipped: " + exception.message)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            // e.g. SecurityException on Android when BLUETOOTH_SCAN was denied
+            println("Bluetooth scan failed: " + exception)
+        }
     }
 
     Column(
@@ -52,36 +68,40 @@ fun SetupScreen(
             Modifier
                 .fillMaxSize()
                 .background(AppColors.Background)
-                .padding(horizontal = 24.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(63.dp))
 
-        ScreenTitle(text = stringResource(Res.string.welcome_message))
-
-        Spacer(modifier = Modifier.height(48.dp))
+        ScreenTitle(
+            text = stringResource(Res.string.welcome_message),
+            fontSize = 36.sp,
+            lineHeight = 31.sp,
+        )
 
         Image(
             painter = painterResource(Res.drawable.logo),
             contentDescription = "Tranquilify logo",
-            modifier = Modifier.size(280.dp),
+            modifier = Modifier.size(366.dp),
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
-        PrimaryButton(
-            text = stringResource(Res.string.login),
-            onClick = onLogin,
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            PrimaryButton(
+                text = stringResource(Res.string.log_in_button),
+                onClick = onLogin,
+                fontSize = 16.sp,
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        PrimaryButton(
-            text = stringResource(Res.string.create_account),
-            onClick = onCreateAccount,
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
+            PrimaryButton(
+                text = stringResource(Res.string.create_account),
+                onClick = onCreateAccount,
+                fontSize = 16.sp,
+            )
+        }
     }
 }
 

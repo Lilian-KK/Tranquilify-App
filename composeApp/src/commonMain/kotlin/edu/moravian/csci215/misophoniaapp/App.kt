@@ -14,7 +14,11 @@ import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesConnectio
 import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesConnectionScreen
 import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesNearby
 import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesNearbyScreen
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesSelect
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesSelectScreen
+import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesSettings
 import edu.moravian.csci215.misophoniaapp.screens.headphones.HeadphonesSettingsScreen
+import edu.moravian.csci215.misophoniaapp.headphones_data.HeadphonesRepository
 import edu.moravian.csci215.misophoniaapp.screens.login.*
 import edu.moravian.csci215.misophoniaapp.screens.registration.*
 import edu.moravian.csci215.misophoniaapp.server_data.*
@@ -46,6 +50,7 @@ import responseValidator
 fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
     val navController = rememberNavController()
     val coroutineScope = rememberCoroutineScope()
+    val headphonesRepository = remember { HeadphonesRepository() }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var isLoaded by remember {mutableStateOf<Boolean>(false)}
@@ -112,7 +117,7 @@ fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
 
     val currentScreen = navBackStackEntry?.destination?.route
     println("currentscreen:" + currentScreen)
-    val screensWithBottomBar = listOf(AppSettings.toString(), HeadphonesSettings.toString(), Hub.toString(), SurveyHistory.toString(), WifiNetworks.toString())
+    val screensWithBottomBar = listOf(AppSettings.toString(), HeadphonesSelect.toString(), "HeadphonesSettings", Hub.toString(), SurveyHistory.toString(), WifiNetworks.toString())
     println(screensWithBottomBar)
     val hasBottomBar = screensWithBottomBar.any { currentScreen?.contains(it) == true || currentScreen?.contains("ViewSurvey") == true}
 
@@ -125,58 +130,54 @@ fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
                         actions = {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                IconButton({ navController.navigate(Hub) }) {
+                                IconButton({ navController.navigate(Hub) }, Modifier.size(48.dp)) {
                                     Icon(
-                                        painterResource(Res.drawable.home_button),
+                                        painterResource(if (currentScreen?.contains(Hub.toString()) == true) Res.drawable.ic_home_selected else Res.drawable.ic_home),
                                         stringResource(Res.string.home_button),
-                                        Modifier.size(35.dp),
-                                        Color.White,
+                                        Modifier.size(48.dp),
+                                        Color.Unspecified,
                                     )
                                 }
-                                IconButton({ navController.navigate(HeadphonesSettings) }) {
+                                IconButton({ navController.navigate(HeadphonesSelect) }, Modifier.size(48.dp)) {
                                     Icon(
-                                        painterResource(Res.drawable.headphones),
+                                        painterResource(if (currentScreen?.contains("Headphones") == true) Res.drawable.ic_headphones_selected else Res.drawable.ic_headphones),
                                         stringResource(Res.string.hp_settings_button),
-                                        Modifier.size(35.dp),
-                                        Color.White,
+                                        Modifier.size(48.dp),
+                                        Color.Unspecified,
                                     )
                                 }
-                                IconButton({ navController.navigate(SurveyHistory) }) {
+                                IconButton({ navController.navigate(SurveyHistory) }, Modifier.size(48.dp)) {
                                     Icon(
-                                        painterResource(Res.drawable.view_history),
+                                        painterResource(Res.drawable.ic_clipboard),
                                         stringResource(Res.string.survey_history_button),
-                                        Modifier.size(35.dp),
-                                        Color.White,
+                                        Modifier.size(48.dp),
+                                        Color.Unspecified,
                                     )
                                 }
-                                IconButton({ navController.navigate(AppSettings) }) {
+                                IconButton({ navController.navigate(AppSettings) }, Modifier.size(48.dp)) {
                                     Icon(
-                                        painterResource(Res.drawable.settings),
+                                        painterResource(Res.drawable.ic_settings),
                                         stringResource(Res.string.app_settings_button),
-                                        Modifier.size(35.dp),
-                                        Color.White,
-                                    )
-                                }
-                                IconButton({ navController.navigate(WifiNetworks) }) {
-                                    Icon(
-                                        painterResource(Res.drawable.wifi),
-                                        stringResource(Res.string.wifi_settings_button),
-                                        Modifier.size(35.dp),
-                                        Color.White,
+                                        Modifier.size(48.dp),
+                                        Color.Unspecified,
                                     )
                                 }
                             }
                         },
-                        containerColor = Color.Red,
+                        // #9263AA at 75%, from the Figma BottomBar
+                        containerColor = AppColors.Button.copy(alpha = 0.75f),
+                        contentPadding = PaddingValues(0.dp),
                     )
                 }
             },
-        ) {
+        ) { innerPadding ->
             NavHost(
                 navController,
+                // keep content above the bottom bar on the screens that show it
+                modifier = Modifier.padding(bottom = if (hasBottomBar) innerPadding.calculateBottomPadding() else 0.dp),
                 startDestination =
                     if (isLoggedIn == true) Hub else Setup
             ) {
@@ -301,14 +302,38 @@ fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
                     )
                 }
                 composable<Hub> {
-                    HubScreen { surveyType ->
-                        navController.navigate(SurveyCompanion(surveyType))
-                    }
+                    HubScreen(
+                        // todo: pass the paired headphones' battery level once headphone pairing exists
+                        hasHeadphones = headphonesRepository.headphones.isNotEmpty(),
+                        headphoneBatteryPercent = headphonesRepository.headphones.firstOrNull()?.batteryPercent,
+                        onPairHeadphones = { navController.navigate(HeadphonesSelect) },
+                        onSurveySelected = { surveyType ->
+                            navController.navigate(SurveyCompanion(surveyType))
+                        },
+                    )
                 }
-                composable<HeadphonesSettings> {
-                    HeadphonesSettingsScreen {
-                        navController.navigate(WifiNetworks)
-                    }
+                composable<HeadphonesSelect> {
+                    HeadphonesSelectScreen(
+                        headphones = headphonesRepository.headphones,
+                        onHeadphonesSelected = { headphones ->
+                            navController.navigate(HeadphonesSettings(headphones.id))
+                        },
+                        // todo: go through BLE pairing (HeadphonesNearby) once it exists
+                        onAddHeadphones = { headphonesRepository.add() },
+                    )
+                }
+                composable<HeadphonesSettings> { navBackStackEntry ->
+                    val headphonesId = navBackStackEntry.toRoute<HeadphonesSettings>().headphonesId
+                    HeadphonesSettingsScreen(
+                        headphones = headphonesRepository.get(headphonesId),
+                        onRename = { newName -> headphonesRepository.rename(headphonesId, newName) },
+                        onWifiSettings = { navController.navigate(WifiNetworks) },
+                        onDelete = {
+                            headphonesRepository.delete(headphonesId)
+                            navController.popBackStack()
+                        },
+                        goBack = { navController.popBackStack() },
+                    )
                 }
                 composable<SurveyCompanion> { navBackStackEntry ->
                     val surveyType = navBackStackEntry.toRoute<SurveyCompanion>().surveyType
@@ -352,9 +377,6 @@ fun App(repository: SurveyRepository, tokenStorage: TokenStorage) {
                 }
                 composable<HeadphonesNearby> {
                     HeadphonesNearbyScreen()
-                }
-                composable<HeadphonesSettings> {
-                    HeadphonesSettingsScreen()
                 }
             }
         }

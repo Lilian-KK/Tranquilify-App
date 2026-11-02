@@ -50,7 +50,7 @@ fun LoadingScreen() {
             painter = painterResource(Res.drawable.logo),
             contentDescription = "Tranquilify logo",
             modifier = Modifier
-                .size(280.dp)
+                .size(366.dp)
                 .graphicsLayer(
                     scaleX = scale,
                     scaleY = scale

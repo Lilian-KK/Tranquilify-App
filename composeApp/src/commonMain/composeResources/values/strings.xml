@@ -31,15 +31,41 @@
     <string name="welcome_message">Welcome to\nTranquilify</string>
     <string name="login">Log In</string>
     <string name="create_account">Create an Account</string>
+    <string name="log_in_button">Log in</string>
 
     <!--HubScreen-->
     <string name="amisosr_survey">AMISOSR Survey</string>
     <string name="duke_survey">Duke Misophonia Questionnaire</string>
     <string name="trigger_log">Trigger Log Record</string>
+    <string name="good_morning">Good morning friend,</string>
+    <string name="good_afternoon">Good afternoon friend,</string>
+    <string name="good_evening">Good evening friend,</string>
+    <string name="headphone_battery">Headphone Battery</string>
+    <string name="battery_level">Battery level</string>
+    <string name="connect_headphones">Connect Your Headphones</string>
+    <string name="connect_headphones_message">Welcome to Tranquilify! Please connect your headphones to begin.</string>
+    <string name="pair_headphones">Pair Headphones</string>
+
+    <!--Headphones screens-->
+    <string name="select_headphones">Select headphones</string>
+    <string name="add_headphones">Add new headphones</string>
+    <string name="headphone_settings">Headphone Settings</string>
+    <string name="hp_name_label">Name:</string>
+    <string name="hp_uuid_label">UUID:</string>
+    <string name="hp_version_label">Version:</string>
+    <string name="hp_battery_label">Battery:</string>
+    <string name="hp_mac_label">Mac Address:</string>
+    <string name="hp_last_server_label">Last Connection to Server:</string>
+    <string name="hp_last_phone_label">Last Connection to Phone:</string>
+    <string name="unknown_value">Unknown</string>
+    <string name="delete_headphones">Delete headphones</string>
+    <string name="delete_headphones_confirm">Are you sure you want to delete %1$s? This can\'t be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
 
     <!--BottomAppBar icons content descriptions-->
     <string name="home_button">The home button</string>
-    <string name="hp_settings_button">The home button</string>
+    <string name="hp_settings_button">The headphone settings button</string>
     <string name="survey_history_button">The survey history button</string>
     <string name="app_settings_button">The app settings button</string>
     <string name="wifi_settings_button">The Wi-Fi settings button</string>
@@ -54,7 +80,15 @@
     <string name="send_another_code">Send another code</string>
     <string name="continue_">Continue</string>
 
+    <string name="forgot_password_title">Forgot Password</string>
+    <string name="verify">Verify</string>
+    <string name="create_new_password">Create New Password</string>
+    <string name="new_password">New Password</string>
+    <string name="password_requirements">Your password must include the following:\n - at least 8 characters\n - at most 72 characters</string>
+
     <!--CreateAccountScreen-->
+    <string name="create_account_title">Create Account</string>
+    <string name="verify_phone_number">Verify Phone Number</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
 
@@ -64,6 +98,8 @@
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
     <string name="go_back">Go back to previous screen</string>
+    <string name="log_in_with_code">Log in with phone code</string>
+    <string name="log_in_with_password">Log in with password</string>
 
     <!--CodeLoginScreen-->
     <string name="new_code_sent">A new code was sent to your phone number.</string>

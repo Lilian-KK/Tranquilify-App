@@ -1,0 +1,13 @@
+<!-- Figma "Wifi" icon (Tranquilify file), converted 1:1 from SVG -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <path
+        android:pathData="M4.16667 10.4583C5.8138 9.08639 7.88967 8.3351 10.0333 8.3351C12.177 8.3351 14.2529 9.08639 15.9 10.4583M1.18333 7.5C3.61869 5.3533 6.75358 4.16887 10 4.16887C13.2464 4.16887 16.3813 5.3533 18.8167 7.5M7.10833 13.425C7.95433 12.824 8.96639 12.501 10.0042 12.501C11.0419 12.501 12.054 12.824 12.9 13.425M10 16.6667H10.0083"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeColor="#F5F5F5" />
+</vector>

@@ -4,35 +4,17 @@ import BadRequestException
 import ForbiddenException
 import TooManyRequestsException
 import UnauthorizedException
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import edu.moravian.csci215.misophoniaapp.AppColors
+import edu.moravian.csci215.misophoniaapp.BodyText
 import edu.moravian.csci215.misophoniaapp.CodeEntryPrompt
 import edu.moravian.csci215.misophoniaapp.FilledTextField
+import edu.moravian.csci215.misophoniaapp.FormScreenLayout
 import edu.moravian.csci215.misophoniaapp.OtpCodeInput
 import edu.moravian.csci215.misophoniaapp.PrimaryButton
 import edu.moravian.csci215.misophoniaapp.ResendCodeRow
@@ -42,19 +24,24 @@ import edu.moravian.csci215.misophoniaapp.server_data.LoginResponse
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import misophoniaapp.composeapp.generated.resources.Res
-import misophoniaapp.composeapp.generated.resources.back_arrow
-import misophoniaapp.composeapp.generated.resources.go_back
-import misophoniaapp.composeapp.generated.resources.login
+import misophoniaapp.composeapp.generated.resources.create_new_password
+import misophoniaapp.composeapp.generated.resources.forgot_password_title
 import misophoniaapp.composeapp.generated.resources.new_code_sent
-import misophoniaapp.composeapp.generated.resources.password
+import misophoniaapp.composeapp.generated.resources.new_password
+import misophoniaapp.composeapp.generated.resources.password_requirements
+import misophoniaapp.composeapp.generated.resources.send_code
 import misophoniaapp.composeapp.generated.resources.username
-import org.jetbrains.compose.resources.painterResource
+import misophoniaapp.composeapp.generated.resources.verify
+import misophoniaapp.composeapp.generated.resources.verify_for_pw_creation
 import org.jetbrains.compose.resources.stringResource
 
 @Serializable
 data class ForgotPassword(
     val username: String
 )
+
+/** The three steps of the forgot-password flow, matching the Figma screens. */
+private enum class ForgotPasswordStep { SEND_CODE, ENTER_CODE, NEW_PASSWORD }
 
 @Composable
 fun ForgotPasswordScreen(
@@ -67,47 +54,30 @@ fun ForgotPasswordScreen(
     toHub: () -> Unit = {},
     onLogin: suspend (String, String, String) -> LoginResponse
 ) {
+    var step by remember { mutableStateOf(ForgotPasswordStep.SEND_CODE) }
     var code by remember { mutableStateOf("") }
-    var codeSent by remember { mutableStateOf(false) }
     var newPassword by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val fredoka = fredokaFontFamily()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.Background),
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            Spacer(modifier = Modifier.height(48.dp))
-
-            ScreenTitle(
-                text = "Forgot Password",
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            FilledTextField(
-                value = username,
-                label = stringResource(Res.string.username),
-                keyboardType = KeyboardType.Text,
-                fontFamily = fredoka,
-            )
-
-            if (!codeSent) {
-                PrimaryButton(
-                    text = "Send Code to my Phone Number",
+    FormScreenLayout(
+        onBack = {
+            when (step) {
+                ForgotPasswordStep.SEND_CODE -> goBack()
+                ForgotPasswordStep.ENTER_CODE -> step = ForgotPasswordStep.SEND_CODE
+                ForgotPasswordStep.NEW_PASSWORD -> step = ForgotPasswordStep.ENTER_CODE
+            }
+        },
+        bottomAction = {
+            when (step) {
+                ForgotPasswordStep.SEND_CODE -> PrimaryButton(
+                    text = stringResource(Res.string.send_code),
                     fontFamily = fredoka,
                     onClick = {
                         coroutineScope.launch {
                             try {
                                 sendCode(username)
-                                codeSent = true
+                                step = ForgotPasswordStep.ENTER_CODE
                             } catch (exception: BadRequestException) { //400
                                 showSnackbar(exception.message ?: "BadRequestException")
                             } catch (exception: ForbiddenException) { //403--code could not be delivered
@@ -118,17 +88,76 @@ fun ForgotPasswordScreen(
                         }
                     }
                 )
-            }
 
-            if (codeSent) {
-                FilledTextField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    label = "New Password",
-                    keyboardType = KeyboardType.Password,
-                    isPassword = true
+                ForgotPasswordStep.ENTER_CODE -> PrimaryButton(
+                    text = stringResource(Res.string.verify),
+                    fontFamily = fredoka,
+                    // the code is checked by the server when the password is reset
+                    enabled = code.length == 6,
+                    onClick = { step = ForgotPasswordStep.NEW_PASSWORD },
                 )
 
+                ForgotPasswordStep.NEW_PASSWORD -> PrimaryButton(
+                    text = stringResource(Res.string.create_new_password),
+                    fontFamily = fredoka,
+                    onClick = {
+                        coroutineScope.launch {
+                            try {
+                                resetPassword(username, code, newPassword)
+                                showSnackbar("Password reset!")
+                                val tokenResponse = onLogin(username, "password", newPassword)
+                                println(tokenResponse)
+                                storeTokens(tokenResponse.access_token, tokenResponse.refresh_token)
+                                toHub()
+                            } catch (exception: UnauthorizedException) { //401--invalid username
+                                showSnackbar(exception.message ?: "Unauthorized Exception")
+                            } catch (exception: BadRequestException) { //400
+                                showSnackbar(exception.message ?: "Bad Request Exception")
+                            } catch (exception: ForbiddenException) { //403--invalid text code
+                                showSnackbar(exception.message ?: "Forbidden Exception")
+                            } catch (exception: TooManyRequestsException) { //429--exceeded rate limitations
+                                showSnackbar(exception.message ?: "Too Many Requests Exception")
+                            }
+                        }
+                    },
+                )
+            }
+        },
+    ) {
+        if (step == ForgotPasswordStep.NEW_PASSWORD) {
+            ScreenTitle(
+                text = stringResource(Res.string.create_new_password),
+                fontFamily = fredoka,
+            )
+
+            FilledTextField(
+                value = newPassword,
+                onValueChange = { newPassword = it },
+                label = stringResource(Res.string.new_password),
+                description = stringResource(Res.string.password_requirements),
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
+                fontFamily = fredoka,
+            )
+        } else {
+            ScreenTitle(
+                text = stringResource(Res.string.forgot_password_title),
+                fontFamily = fredoka,
+            )
+
+            BodyText(
+                text = stringResource(Res.string.verify_for_pw_creation),
+                fontFamily = fredoka,
+            )
+
+            FilledTextField(
+                value = username,
+                label = stringResource(Res.string.username),
+                keyboardType = KeyboardType.Text,
+                fontFamily = fredoka,
+            )
+
+            if (step == ForgotPasswordStep.ENTER_CODE) {
                 CodeEntryPrompt(fontFamily = fredoka)
 
                 OtpCodeInput(
@@ -154,50 +183,7 @@ fun ForgotPasswordScreen(
                         }
                     },
                 )
-
-                PrimaryButton(
-                    text = "Update Password",
-                    fontFamily = fredoka,
-                    onClick = {
-                        coroutineScope.launch {
-                            try {
-                                resetPassword(username, code, newPassword)
-                                showSnackbar("Password reset!")
-                                val tokenResponse = onLogin(username, "password", newPassword)
-                                println(tokenResponse)
-                                storeTokens(tokenResponse.access_token, tokenResponse.refresh_token)
-                                toHub()
-                            } catch (exception: UnauthorizedException) { //401--invalid username
-                                showSnackbar(exception.message ?: "Unauthorized Exception")
-                            } catch (exception: BadRequestException) { //400
-                                showSnackbar(exception.message ?: "Bad Request Exception")
-                            } catch (exception: ForbiddenException) { //403--invalid text code
-                                showSnackbar(exception.message ?: "Forbidden Exception")
-                            } catch (exception: TooManyRequestsException) { //429--exceeded rate limitations
-                                showSnackbar(exception.message ?: "Too Many Requests Exception")
-                            }
-                        }
-                    },
-                )
-
             }
         }
-
-        IconButton(
-            onClick = goBack,
-            modifier = Modifier
-                .size(48.dp)
-                .background(AppColors.Button, CircleShape)
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.back_arrow),
-                contentDescription = stringResource(Res.string.go_back),
-                modifier = Modifier.size(24.dp),
-                tint = Color.White
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
     }
 }
